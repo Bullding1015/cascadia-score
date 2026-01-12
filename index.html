@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cascadia 计分助手 Pro</title>
+    <title>Cascadia 计分助手 Pro - 地标扩展版</title>
 
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
@@ -20,18 +20,20 @@
         body { font-family: 'Noto Sans SC', sans-serif; -webkit-tap-highlight-color: transparent; }
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        .terrain-bonus { font-weight: 800; font-size: 0.7rem; }
+        .terrain-bonus { font-weight: 800; font-size: 0.65rem; }
         .winner-cell { background-color: #fef9c3; border: 2px solid #eab308 !important; }
-        /* 移动端优化：防止点击时出现蓝色边框 */
         button, input { outline: none !important; }
+        /* 针对名称输入的样式 */
+        .name-input { background: transparent; border: none; font-weight: 900; width: 100%; }
+        .name-input:focus { background: rgba(255,255,255,0.5); border-radius: 4px; }
     </style>
 </head>
-<body class="bg-stone-100 min-h-screen pb-24">
+<body class="bg-stone-100 min-h-screen pb-24 text-stone-800">
 
     <div class="max-w-5xl mx-auto px-4 py-8">
         <header class="text-center mb-8">
-            <h1 class="text-4xl font-black text-stone-800 tracking-tight">CASCADIA <span class="text-emerald-600 font-black">PRO</span></h1>
-            <p class="text-stone-400 text-xs mt-2 font-bold uppercase tracking-widest">Analytics & Scoring v3.0</p>
+            <h1 class="text-4xl font-black text-stone-800 tracking-tight italic">CASCADIA <span class="text-emerald-600">LANDMARKS</span></h1>
+            <p class="text-stone-400 text-xs mt-2 font-bold uppercase tracking-widest">地标扩展增强版 v3.5</p>
         </header>
 
         <div class="flex justify-center items-center gap-4 mb-8">
@@ -46,55 +48,38 @@
         <div id="players-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
 
         <div class="flex flex-col sm:flex-row justify-center gap-4 mt-10">
-            <button onclick="saveCurrentGame()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl font-black shadow-lg shadow-emerald-200 transition-all flex items-center justify-center gap-2">
+            <button onclick="saveCurrentGame()" class="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black shadow-lg shadow-emerald-100 flex items-center justify-center gap-2">
                 <span>💾</span> 保存本局数据
             </button>
-            <button onclick="resetCurrentScores()" class="bg-white border border-stone-200 text-stone-500 px-8 py-4 rounded-2xl font-bold hover:bg-red-50 hover:text-red-600 transition-all">
+            <button onclick="resetCurrentScores()" class="bg-white border border-stone-200 text-stone-400 px-8 py-4 rounded-2xl font-bold">
                 🔄 重置本局
             </button>
         </div>
 
         <div class="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 bg-white rounded-3xl shadow-xl overflow-hidden border border-stone-200">
-                <div class="bg-stone-800 px-6 py-4 text-white font-bold flex justify-between items-center">
-                    <span>📊 实时评分对比对照</span>
-                    <span class="text-[10px] text-stone-400 font-normal">HIGH SCORE AUTO-HIGHLIGHT</span>
+                <div class="bg-stone-800 px-6 py-4 text-white font-bold flex justify-between items-center text-sm">
+                    <span>📊 对比分析</span>
+                    <span class="text-[10px] text-stone-400">LANDMARK SCORES INCLUDED</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-center text-sm">
-                        <thead>
-                            <tr class="bg-stone-50 text-stone-400 font-bold border-b border-stone-100 text-xs">
-                                <th class="p-4 text-left">计分项目</th>
-                                <th id="th-p1" class="p-4">P1</th><th id="th-p2" class="p-4">P2</th>
-                                <th id="th-p3" class="p-4">P3</th><th id="th-p4" class="p-4">P4</th>
-                            </tr>
-                        </thead>
-                        <tbody id="summary-body" class="text-stone-700"></tbody>
-                        <tfoot class="bg-stone-900 text-white font-black">
-                            <tr>
-                                <td class="p-5 text-left">最终总分</td>
-                                <td id="total-p1" class="p-5 text-2xl">-</td><td id="total-p2" class="p-5 text-2xl">-</td>
-                                <td id="total-p3" class="p-5 text-2xl">-</td><td id="total-p4" class="p-5 text-2xl">-</td>
-                            </tr>
-                        </tfoot>
+                        <thead id="summary-head"></thead>
+                        <tbody id="summary-body" class="text-stone-600"></tbody>
+                        <tfoot id="summary-foot" class="bg-stone-900 text-white font-black"></tfoot>
                     </table>
                 </div>
             </div>
 
             <div class="bg-white rounded-3xl shadow-xl p-6 border border-stone-200">
-                <h3 class="font-black text-stone-800 mb-6 flex items-center gap-2">📈 维度透视分析</h3>
+                <h3 class="font-black text-stone-800 mb-4 flex items-center gap-2">📈 维度透视</h3>
                 <div class="relative h-64">
                     <canvas id="scoreChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <div class="mt-12">
-            <h3 class="font-black text-stone-800 mb-4 flex justify-between items-center px-2">
-                <span>🕒 七日内战绩 (Local Storage)</span>
-            </h3>
-            <div id="history-list" class="space-y-3"></div>
-        </div>
+        <div id="history-list" class="mt-12 space-y-3 px-2"></div>
     </div>
 
     <script>
@@ -112,17 +97,33 @@
         let scores = {};
         function initData() {
             for(let i=1; i<=4; i++) {
-                scores[i] = { a: [0,0,0,0,0], t: [0,0,0,0,0], bonus: [0,0,0,0,0], leaf: 0, total: 0 };
+                if(!scores[i]) {
+                    scores[i] = { 
+                        name: `玩家 ${i}`, 
+                        a: [0,0,0,0,0], 
+                        t: [0,0,0,0,0], 
+                        l: [0,0,0,0,0], // 地标分
+                        bonus: [0,0,0,0,0], 
+                        leaf: 0, 
+                        total: 0 
+                    };
+                }
             }
         }
 
         function setPlayers(n) {
             playerCount = n;
             for(let i=1; i<=4; i++) {
-                document.getElementById(`btn-${i}`).className = i===n ? "px-6 py-2 rounded-xl font-bold bg-stone-800 text-white shadow-md scale-105 transition-all" : "px-6 py-2 rounded-xl font-bold text-stone-400 hover:bg-white";
+                document.getElementById(`btn-${i}`).className = i===n ? "px-6 py-2 rounded-xl font-bold bg-stone-800 text-white shadow-md" : "px-6 py-2 rounded-xl font-bold text-stone-400";
             }
             renderInputs();
             calculate();
+        }
+
+        function updateName(p, val) {
+            scores[p].name = val || `玩家 ${p}`;
+            renderTable();
+            updateChart();
         }
 
         function renderInputs() {
@@ -131,24 +132,26 @@
             for(let i=1; i<=playerCount; i++) {
                 container.innerHTML += `
                 <div class="bg-white rounded-3xl shadow-sm border border-stone-200 overflow-hidden">
-                    <div class="bg-stone-50 border-b px-6 py-4 flex justify-between items-center font-black">
-                        <span class="text-stone-400 text-xs uppercase tracking-tighter">Player ${i}</span>
-                        <span id="card-total-${i}" class="text-stone-800 text-2xl font-black tabular-nums">0</span>
+                    <div class="bg-stone-50 border-b px-6 py-4 flex justify-between items-center">
+                        <input type="text" value="${scores[i].name}" oninput="updateName(${i}, this.value)" class="name-input text-stone-800 text-lg" placeholder="输入名称...">
+                        <span id="card-total-${i}" class="text-emerald-600 text-2xl font-black">0</span>
                     </div>
-                    <div class="p-6 space-y-8">
-                        <div>
-                            <div class="grid grid-cols-5 gap-3">
-                                ${animals.map((a, idx) => `<div class="text-center"><div class="text-xl mb-1">${a.i}</div><input type="number" value="${scores[i].a[idx]||''}" oninput="updateVal(${i},'a',${idx},this.value)" class="w-full bg-stone-50 border border-stone-100 rounded-xl p-3 text-center font-black outline-none focus:ring-2 focus:ring-stone-400 transition-all" placeholder="0"></div>`).join('')}
-                            </div>
+                    <div class="p-6 space-y-6">
+                        <div class="grid grid-cols-5 gap-2">
+                            ${animals.map((a, idx) => `<div class="text-center"><div class="text-lg mb-1">${a.i}</div><input type="number" value="${scores[i].a[idx]||''}" oninput="updateVal(${i},'a',${idx},this.value)" class="w-full bg-stone-50 border border-stone-100 rounded-xl p-2 text-center font-bold outline-none focus:ring-2 focus:ring-stone-300" placeholder="0"></div>`).join('')}
                         </div>
-                        <div>
-                            <div class="grid grid-cols-5 gap-3">
-                                ${terrains.map((t, idx) => `<div class="text-center"><div class="text-[10px] font-black mb-1 ${t.t}">${t.n}</div><input type="number" value="${scores[i].t[idx]||''}" oninput="updateVal(${i},'t',${idx},this.value)" class="w-full ${t.c} border ${t.b} rounded-xl p-3 text-center font-black outline-none ${t.ring} transition-all" placeholder="0"><div id="bonus-${i}-${idx}" class="terrain-bonus h-4 text-rose-500 mt-1"></div></div>`).join('')}
-                            </div>
+                        <div class="grid grid-cols-5 gap-2 border-t pt-4">
+                            ${terrains.map((t, idx) => `
+                                <div class="text-center space-y-2">
+                                    <div class="text-[10px] font-black ${t.t}">${t.n}</div>
+                                    <input type="number" value="${scores[i].t[idx]||''}" oninput="updateVal(${i},'t',${idx},this.value)" class="w-full ${t.c} border ${t.b} rounded-xl p-2 text-center font-bold outline-none ${t.ring}" placeholder="地">
+                                    <input type="number" value="${scores[i].l[idx]||''}" oninput="updateVal(${i},'l',${idx},this.value)" class="w-full bg-white border ${t.b} rounded-xl p-2 text-center text-xs font-bold outline-none ${t.ring}" placeholder="标">
+                                    <div id="bonus-${i}-${idx}" class="terrain-bonus h-3 text-rose-500"></div>
+                                </div>`).join('')}
                         </div>
-                        <div class="flex items-center justify-between bg-orange-50/50 p-4 rounded-2xl border border-orange-100">
-                            <span class="text-sm font-black text-orange-700 flex items-center gap-2">🍃 自然标记 (叶子)</span>
-                            <input type="number" value="${scores[i].leaf||''}" oninput="updateVal(${i},'leaf',0,this.value)" class="w-20 bg-white border border-orange-200 rounded-xl p-3 text-center font-black text-orange-700 outline-none focus:ring-4 focus:ring-orange-100">
+                        <div class="flex items-center justify-between bg-orange-50/50 p-3 rounded-2xl border border-orange-100">
+                            <span class="text-sm font-black text-orange-700">🍃 自然标记</span>
+                            <input type="number" value="${scores[i].leaf||''}" oninput="updateVal(${i},'leaf',0,this.value)" class="w-20 bg-white border border-orange-200 rounded-xl p-2 text-center font-black text-orange-700 outline-none focus:ring-2 focus:ring-orange-300">
                         </div>
                     </div>
                 </div>`;
@@ -157,9 +160,8 @@
 
         function updateVal(p, type, idx, val) {
             const v = parseInt(val) || 0;
-            if(type === 'a') scores[p].a[idx] = v;
-            else if(type === 't') scores[p].t[idx] = v;
-            else scores[p].leaf = v;
+            if(type === 'leaf') scores[p].leaf = v;
+            else scores[p][type][idx] = v;
             calculate();
         }
 
@@ -188,8 +190,10 @@
             }
             for(let i=1; i<=playerCount; i++) {
                 const aTot = scores[i].a.reduce((a,b)=>a+b,0);
-                const tTot = scores[i].t.reduce((a,b)=>a+b,0) + scores[i].bonus.reduce((a,b)=>a+b,0);
-                scores[i].total = aTot + tTot + scores[i].leaf;
+                const tBase = scores[i].t.reduce((a,b)=>a+b,0);
+                const tBonus = scores[i].bonus.reduce((a,b)=>a+b,0);
+                const lTot = scores[i].l.reduce((a,b)=>a+b,0);
+                scores[i].total = aTot + tBase + tBonus + lTot + scores[i].leaf;
                 document.getElementById(`card-total-${i}`).innerText = scores[i].total;
                 scores[i].bonus.forEach((b, ti) => {
                     const el = document.getElementById(`bonus-${i}-${ti}`);
@@ -201,33 +205,45 @@
         }
 
         function renderTable() {
+            const head = document.getElementById('summary-head');
             const body = document.getElementById('summary-body');
-            body.innerHTML = '';
-            for(let i=1; i<=4; i++) {
-                const th = document.getElementById(`th-p${i}`);
-                const td = document.getElementById(`total-p${i}`);
-                if(th) th.style.display = i<=playerCount?'':'none';
-                if(td) {
-                    td.style.display = i<=playerCount?'':'none';
-                    td.innerText = i<=playerCount?scores[i].total:'';
-                }
+            const foot = document.getElementById('summary-foot');
+            
+            let headHtml = `<tr class="bg-stone-50 text-stone-400 text-[10px] font-black uppercase"><th class="p-4 text-left">项目</th>`;
+            let footHtml = `<tr><td class="p-5 text-left text-xs uppercase">最终得分</td>`;
+            
+            for(let i=1; i<=playerCount; i++) {
+                headHtml += `<th class="p-4">${scores[i].name}</th>`;
             }
-            const rows = [
+            head.innerHTML = headHtml + `</tr>`;
+
+            let rows = [
                 ...animals.map((a,idx)=>({n:a.i+' '+a.n, k:'a', idx})),
-                ...terrains.map((t,idx)=>({n:t.n, k:'t', idx})),
+                ...terrains.map((t,idx)=>({n:t.n+' 地形', k:'t', idx})),
+                ...terrains.map((t,idx)=>({n:t.n+' 地标', k:'l', idx})),
                 {n:'🍃 自然标记', k:'leaf', idx:-1}
             ];
-            rows.forEach(row => {
-                let html = `<tr class="border-b border-stone-50"><td class="p-4 text-left text-stone-400 font-bold">${row.n}</td>`;
+
+            body.innerHTML = rows.map(row => {
+                let html = `<tr class="border-b border-stone-50"><td class="p-3 text-left font-bold text-xs">${row.n}</td>`;
                 let vals = [];
                 for(let p=1; p<=playerCount; p++) vals.push(row.idx===-1?scores[p][row.k]:scores[p][row.k][row.idx]);
                 let max = Math.max(...vals);
                 for(let p=1; p<=playerCount; p++) {
                     let v = row.idx===-1?scores[p][row.k]:scores[p][row.k][row.idx];
-                    html += `<td class="p-4 tabular-nums ${v===max && max>0 && playerCount>1 ? 'winner-cell font-black text-emerald-600':''}">${v}</td>`;
+                    html += `<td class="p-3 tabular-nums ${v===max && max>0 && playerCount>1 ? 'winner-cell font-black text-emerald-600':''}">${v}</td>`;
                 }
-                body.innerHTML += html + `</tr>`;
-            });
+                return html + `</tr>`;
+            }).join('');
+
+            let totals = [];
+            for(let i=1; i<=playerCount; i++) totals.push(scores[i].total);
+            let winScore = Math.max(...totals);
+
+            for(let i=1; i<=playerCount; i++) {
+                footHtml += `<td class="p-5 text-2xl font-black ${scores[i].total===winScore && winScore>0 ? 'text-yellow-400':''}">${scores[i].total}</td>`;
+            }
+            foot.innerHTML = footHtml + `</tr>`;
         }
 
         function updateChart() {
@@ -236,25 +252,26 @@
             const datasets = [];
             for(let i=1; i<=playerCount; i++) {
                 datasets.push({
-                    label: `玩家 ${i}`,
+                    label: scores[i].name,
                     data: [
                         scores[i].a.reduce((a,b)=>a+b,0),
                         scores[i].t.reduce((a,b)=>a+b,0) + scores[i].bonus.reduce((a,b)=>a+b,0),
+                        scores[i].l.reduce((a,b)=>a+b,0),
                         scores[i].leaf
                     ],
                     backgroundColor: colors[i-1] + 'CC',
                     borderColor: colors[i-1],
-                    borderRadius: 8
+                    borderRadius: 6
                 });
             }
             if(chartInstance) chartInstance.destroy();
             chartInstance = new Chart(ctx, {
                 type: 'bar',
-                data: { labels: ['动物', '地形', '自然标记'], datasets: datasets },
+                data: { labels: ['动物', '地形', '地标', '标记'], datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: true, position: 'bottom' } },
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
                     scales: { y: { beginAtZero: true, grid: { display: false } } }
                 }
             });
@@ -275,29 +292,32 @@
         }
 
         function loadHistory() {
-            const historyList = document.getElementById('history-list');
+            const list = document.getElementById('history-list');
             let history = JSON.parse(localStorage.getItem('cascadia_history') || '[]');
-            const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
-            const now = Date.now();
-            history = history.filter(item => (now - item.timestamp) < ONE_WEEK);
+            history = history.filter(item => (Date.now() - item.timestamp) < 7*24*60*60*1000);
             localStorage.setItem('cascadia_history', JSON.stringify(history));
-            
             if(history.length === 0) {
-                historyList.innerHTML = '<div class="text-center py-8 text-stone-300 text-sm font-medium border-2 border-dashed border-stone-200 rounded-3xl">暂无近七日战绩记录</div>';
+                list.innerHTML = '<div class="text-center py-8 text-stone-300 text-xs font-bold border-2 border-dashed border-stone-200 rounded-3xl uppercase tracking-widest">No History</div>';
                 return;
             }
-            historyList.innerHTML = history.slice(0, 5).map(item => {
+            list.innerHTML = history.slice(0, 5).map(item => {
                 const winnerScore = Math.max(...Object.values(item.scores).slice(0, item.playerCount).map(s=>s.total));
                 return `<div class="bg-white p-4 rounded-2xl border border-stone-100 flex justify-between items-center shadow-sm">
-                    <div><div class="text-[10px] text-stone-300 font-bold uppercase">${item.date}</div><div class="text-stone-800 font-black">${item.playerCount} 名玩家对战</div></div>
-                    <div class="text-right"><div class="text-[10px] text-stone-300 font-bold uppercase">WINNER</div><div class="text-xl font-black text-emerald-600">${winnerScore}</div></div>
+                    <div><div class="text-[10px] text-stone-300 font-bold uppercase">${item.date}</div><div class="text-stone-800 font-black text-sm">${item.playerCount} 人对战</div></div>
+                    <div class="text-right"><div class="text-[10px] text-stone-300 font-bold uppercase">Winner</div><div class="text-xl font-black text-emerald-600">${winnerScore}</div></div>
                 </div>`;
             }).join('');
         }
 
         function resetCurrentScores() {
-            if(confirm('确定要清空本局当前输入的分数吗？')) {
-                initData();
+            if(confirm('确定清空本局得分吗？名称将被保留。')) {
+                for(let i=1; i<=4; i++) {
+                    scores[i].a = [0,0,0,0,0];
+                    scores[i].t = [0,0,0,0,0];
+                    scores[i].l = [0,0,0,0,0];
+                    scores[i].leaf = 0;
+                    scores[i].total = 0;
+                }
                 renderInputs();
                 calculate();
             }
